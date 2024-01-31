@@ -48,7 +48,11 @@ app.use(session({
 ));
 
 app.get('/', (req, res) => {
-    res.render("index");
+    if (req.session.authenticated) {
+        res.render("authindex", { name: req.session.username });
+    } else {
+        res.render("index");
+    }
 });
 
 app.get('/about', (req, res) => {
@@ -127,7 +131,7 @@ app.post('/loggingin', async (req, res) => {
         if (results.length == 1) { //there should only be 1 user in the db that matches
             if (bcrypt.compareSync(password, results[0].password)) {
                 req.session.authenticated = true;
-                req.session.user_type = results[0].type;
+                // req.session.user_type = results[0].type;
                 req.session.username = username;
                 req.session.cookie.maxAge = expireTime;
 
