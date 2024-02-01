@@ -135,7 +135,7 @@ app.post('/loggingin', async (req, res) => {
                 req.session.username = username;
                 req.session.cookie.maxAge = expireTime;
 
-                res.redirect('/loggedIn');
+                res.redirect('/');
                 return;
             }
             else {
@@ -154,6 +154,11 @@ app.post('/loggingin', async (req, res) => {
     res.redirect("/login");
 });
 
+app.post('/logout', async (req, res) => {
+    req.session.authenticated = false;
+    req.session.username = "";
+    res.redirect('/');
+})
 
 function isValidSession(req) {
     if (req.session.authenticated) {

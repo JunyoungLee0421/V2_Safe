@@ -1,5 +1,7 @@
 <%- include("templates/header") %>
     <h1>Hello <%- name%>!</h1>
-    <a href="memberInfo"><button>Go to members arena</button></a>
-    <a href="login"><button>Logout</button></a>
+    <a href="/loggedIn/memberinfo"><button>Go to members arena</button></a>
+    <form action='/logout' method='post'>
+        <button>Logout</button>
+    </form>
     <%- include("templates/footer") %>
