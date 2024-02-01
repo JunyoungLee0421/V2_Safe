@@ -92,27 +92,48 @@ app.get('/createTables', async (req, res) => {
     }
 });
 
-app.get('/createUser', (req, res) => {
-    res.render("createUser");
-});
+app.post('/members', (req, res) => {
 
+})
+
+app.get('/signup', (req, res) => {
+    var missingusername = req.query.missingusername;
+    var missingpassword = req.query.missingpassword;
+    res.render("signup", {
+        missingusername: missingusername,
+        missingpassword: missingpassword
+    })
+});
 
 app.get('/login', (req, res) => {
-    res.render("login");
+    var badlogin = req.query.badlogin;
+    var missingusername = req.query.missingusername;
+    var missingpassword = req.query.missingpassword;
+    res.render("login", {
+        missingusername: missingusername,
+        missingpassword: missingpassword,
+        badlogin: badlogin
+    });
 });
 
-app.post('/submitUser', async (req, res) => {
+app.post('/signup', async (req, res) => {
     var username = req.body.username;
     var password = req.body.password;
 
     var hashedPassword = bcrypt.hashSync(password, saltRounds);
+
+    if (!username) {
+        res.redirect('signup?missingusername=1')
+    } else if (!password) {
+        res.redirect('signup?missingpassword=1')
+    }
 
     var success = await db_users.createUser({ user: username, hashedPassword: hashedPassword });
 
     if (success) {
         var results = await db_users.getUsers();
 
-        res.render("submitUser", { users: results });
+        res.render("members", { users: results });
     }
     else {
         res.render("errorMessage", { error: "Failed to create user." });
@@ -120,10 +141,17 @@ app.post('/submitUser', async (req, res) => {
 
 });
 
-app.post('/loggingin', async (req, res) => {
+app.post('/login', async (req, res) => {
     var username = req.body.username;
     var password = req.body.password;
 
+    if (!username) {
+        res.redirect('login?missingusername=1')
+        return
+    } else if (!password) {
+        res.redirect('login?missingpassword=1')
+        return
+    }
 
     var results = await db_users.getUser({ user: username, hashedPassword: password });
 
@@ -131,20 +159,21 @@ app.post('/loggingin', async (req, res) => {
         if (results.length == 1) { //there should only be 1 user in the db that matches
             if (bcrypt.compareSync(password, results[0].password)) {
                 req.session.authenticated = true;
-                // req.session.user_type = results[0].type;
                 req.session.username = username;
                 req.session.cookie.maxAge = expireTime;
 
-                res.redirect('/');
+                res.redirect('/loggedin/members');
                 return;
             }
             else {
-                console.log("invalid password");
+                res.redirect("login?badlogin=1");
+                return
+                // console.log("invalid password");
             }
         }
         else {
             console.log('invalid number of users matched: ' + results.length + " (expected 1).");
-            res.redirect('/login');
+            res.redirect('login?badlogin=1');
             return;
         }
     }
@@ -155,8 +184,7 @@ app.post('/loggingin', async (req, res) => {
 });
 
 app.post('/logout', async (req, res) => {
-    req.session.authenticated = false;
-    req.session.username = "";
+    req.session.destroy();
     res.redirect('/');
 })
 
@@ -211,8 +239,8 @@ app.get('/loggedin/admin', (req, res) => {
     res.render("admin");
 });
 
-app.get('/loggedin/memberinfo', (req, res) => {
-    res.render("memberInfo", { username: req.session.username, user_type: req.session.user_type });
+app.get('/loggedin/members', (req, res) => {
+    res.render("members", { username: req.session.username, user_type: req.session.user_type });
 });
 
 
@@ -225,7 +253,6 @@ app.get('/cat/:id', (req, res) => {
 
 app.get('/api', (req, res) => {
     var user = req.session.user;
-    var user_type = req.session.user_type;
     console.log("api hit ");
 
     var jsonResponse = {
