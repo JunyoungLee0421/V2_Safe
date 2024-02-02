@@ -92,9 +92,6 @@ app.get('/createTables', async (req, res) => {
     }
 });
 
-app.post('/members', (req, res) => {
-
-})
 
 app.get('/signup', (req, res) => {
     var missingusername = req.query.missingusername;
@@ -132,8 +129,9 @@ app.post('/signup', async (req, res) => {
 
     if (success) {
         var results = await db_users.getUsers();
-
-        res.render("members", { users: results });
+        res.redirect('/loggedin/members');
+        return;
+        // res.render("members", { users: results });
     }
     else {
         res.render("errorMessage", { error: "Failed to create user." });
