@@ -238,7 +238,12 @@ app.get('/loggedin/admin', (req, res) => {
 });
 
 app.get('/loggedin/members', (req, res) => {
-    res.render("members", { username: req.session.username, user_type: req.session.user_type });
+    randomCat = Math.floor(Math.random() * 3) + 1;
+    res.render("members", {
+        username: req.session.username,
+        user_type: req.session.user_type,
+        cat_photo: `cat${randomCat}`
+    });
 });
 
 
