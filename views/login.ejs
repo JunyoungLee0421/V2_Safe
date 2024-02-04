@@ -7,5 +7,9 @@
     </form>
     <% if (badlogin) { %>
         <br> Username and password not found
-        <% } %>
-            <%- include("templates/footer") %>
+        <% } else if (missingpassword){ %>
+            <br> Missing Password
+            <% } else if (missingusername){ %>
+                <br> Missing Username
+                <% } %>
+                    <%- include("templates/footer") %>

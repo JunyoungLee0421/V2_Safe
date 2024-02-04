@@ -17,7 +17,7 @@ const port = process.env.PORT || 3000;
 
 const app = express();
 
-const expireTime = 24 * 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
+const expireTime = 1 * 60 * 60 * 1000; //expires after 1 day  (hours * minutes * seconds * millis)
 
 
 /* secret information section */
@@ -129,14 +129,28 @@ app.post('/signup', async (req, res) => {
 
     if (success) {
         var results = await db_users.getUsers();
-        res.redirect('/loggedin/members');
-        return;
+        req.session.authenticated = true;
+        req.session.username = username;
+        req.session.cookie.maxAge = expireTime;
+        res.redirect('/members');
         // res.render("members", { users: results });
     }
     else {
         res.render("errorMessage", { error: "Failed to create user." });
     }
 
+});
+
+app.get('/members', (req, res) => {
+    if (req.session.authenticated) {
+        randomCat = Math.floor(Math.random() * 3) + 1;
+        res.render("members", {
+            username: req.session.username,
+            cat_photo: `cat${randomCat}`
+        });
+    } else {
+        res.redirect("/");
+    }
 });
 
 app.post('/login', async (req, res) => {
@@ -160,7 +174,7 @@ app.post('/login', async (req, res) => {
                 req.session.username = username;
                 req.session.cookie.maxAge = expireTime;
 
-                res.redirect('/loggedin/members');
+                res.redirect('/members');
                 return;
             }
             else {
@@ -236,16 +250,6 @@ app.get('/loggedin/info', (req, res) => {
 app.get('/loggedin/admin', (req, res) => {
     res.render("admin");
 });
-
-app.get('/loggedin/members', (req, res) => {
-    randomCat = Math.floor(Math.random() * 3) + 1;
-    res.render("members", {
-        username: req.session.username,
-        user_type: req.session.user_type,
-        cat_photo: `cat${randomCat}`
-    });
-});
-
 
 app.get('/cat/:id', (req, res) => {
     var cat = req.params.id;
